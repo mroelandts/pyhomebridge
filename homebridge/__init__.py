@@ -67,7 +67,8 @@ class HomeBridgeController:
             logging.error('GET accessories response: {}'.format(get_response.status_code))
         for accessory in get_response.json()['accessories']:
             a_name, a_info = self._get_info_of_accessory(accessory)
-            self._accessories[a_name] = a_info
+            if a_info['iid'] is not None:
+                self._accessories[a_name] = a_info
         return True
 
     @staticmethod

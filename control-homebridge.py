@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-import re
-import requests
 import sys
-import json
 import logging
 import argparse
 
-from typing import Dict, List, Optional, Tuple
 from homebridge import HomeBridgeController, UnknownAccessory, InvalidAuthorization
+
+DEFAULT_SERVER = 'homebridge.local'  # IP addr
+DEFAULT_PORT = 51264
+DEFAULT_CODE = '123-45-678'
 
 
 def setup_logger(logger_name: str, create_new: bool = False, terminal: bool = True, logging_level=logging.INFO) -> logging.Logger:
@@ -46,6 +46,9 @@ if __name__ == "__main__":
     parser.add_argument('--on', action='store_true', help='turn the accessory on')
     parser.add_argument('--off', action='store_true', help='turn the accessory off')
     parser.add_argument('--toggle', action='store_true', help='toogle the accessory')
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
     args = parser.parse_args()
 
     # read config file
@@ -53,11 +56,11 @@ if __name__ == "__main__":
     main_port = args.port
     main_auth = args.auth
     if main_host is None:
-        main_host ='raspberry-mini.local'
+        main_host = DEFAULT_SERVER
     if main_port is None:
-        main_port = '51264'
+        main_port = DEFAULT_PORT
     if main_auth is None:
-        main_auth = '797-51-414'
+        main_auth = DEFAULT_CODE
 
     # create controller
     controller = HomeBridgeController(host=main_host, port=main_port, auth=main_auth, debug=args.debug)

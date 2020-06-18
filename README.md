@@ -9,16 +9,29 @@ API control is only allowed in this mode.
 Thats starting HomeBridge with the -I flag.
 
 ## Installation
+Pypi package for [pyhomebridge](https://pypi.org/project/pyhomebridge/)
 ```bash
-pip install pyhomebridge
+pip3 install pyhomebridge
 ```
 
 ## Usage
+Python usage:
 ```python
 from homebridge import HomeBridgeController
 
 controller = HomeBridgeController(host="homebridge.local", port=80, auth="123-45-678")
 controller.print_accessories()
+controller.get_value("light_hallway")
+controller.set_value("light_hallway", True)
+```
+
+In the repo you can find a python script to use for CLI execution. `control-homebridge.py`
+```bash
+python3 control-homebridge.py --list
+python3 control-homebridge.py --name light_hallway --off
+
+# you will need to set url, port and code in the script
+# or use the --server, --port, --auth options
 ```
 
 ## Development

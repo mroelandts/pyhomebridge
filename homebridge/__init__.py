@@ -2,12 +2,10 @@
 
 import re
 import requests
-import sys
 import json
 import logging
-import argparse
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Tuple
 
 __version__ = "0.0.1"
 
@@ -40,7 +38,6 @@ class HomeBridgeController:
         self._hostname = host
         self._port = port
         self._auth = auth
-        result = re.match(r'\d{3}-\d{2}-\d{3}', self._auth)
         if re.match(r'\d{3}-\d{2}-\d{3}', self._auth) is None:
             raise InvalidAuthorization("'{}' does not match a correct authorization code!".format(self._auth))
         self._base_url = 'http://{}:{}'.format(self._hostname, self._port)
@@ -48,8 +45,6 @@ class HomeBridgeController:
 
         # accessories info
         self._accessories = {}
-        self._selected_accessories = []
-        self._selected_accessory_names = {}
 
         # setup logger
         logging_level = logging.INFO
@@ -75,7 +70,8 @@ class HomeBridgeController:
             self._accessories[a_name] = a_info
         return True
 
-    def _get_info_of_accessory(self, accessory_dict: Dict) -> Tuple[str, Dict]:
+    @staticmethod
+    def _get_info_of_accessory(accessory_dict: Dict) -> Tuple[str, Dict]:
         a_id = accessory_dict['aid']
         a_name = None
         a_manufacturer = None
@@ -88,32 +84,36 @@ class HomeBridgeController:
                 if characteristic_info['description'] == 'Name':
                     if a_name is not None and a_name != characteristic_info['value']:
                         logging.warning("Found new name for {}! '{}' vs '{}'".format(a_id, a_name,
-                                                                                          characteristic_info['value']))
+                                                                                     characteristic_info['value']))
                     else:
                         a_name = characteristic_info['value']
                 if characteristic_info['description'] == 'Manufacturer':
                     if a_manufacturer is not None and a_manufacturer != characteristic_info['value']:
                         logging.warning("Found new manufacturer for {}! '{}' vs '{}'".format(a_id, a_manufacturer,
-                                                                                                  characteristic_info['value']))
+                                                                                             characteristic_info['value']))
                     else:
                         a_manufacturer = characteristic_info['value']
                 if characteristic_info['description'] == 'On':
                     if a_value is not None and a_value[1] != characteristic_info['value']:
                         logging.warning("Found new value(On) for {}! '{}' vs '{}'".format(a_id, a_value[1],
-                                                                                             characteristic_info['value']))
+                                                                                          characteristic_info['value']))
                     else:
 
-                        a_value = (characteristic_info['iid'], characteristic_info['value'], characteristic_info['format'])
+                        a_value = (characteristic_info['iid'], characteristic_info['value'],
+                                   characteristic_info['format'])
                 if characteristic_info['description'] == 'Model':
                     if a_type is not None and a_type != characteristic_info['value']:
-                        logging.warning("Found new type for {}! '{}' vs '{}'".format(a_id, a_type, characteristic_info['value']))
+                        logging.warning("Found new type for {}! '{}' vs '{}'".format(a_id, a_type,
+                                                                                     characteristic_info['value']))
                     else:
                         a_type = characteristic_info['value']
                 if characteristic_info['description'] == 'Active':
                     if a_active is not None and a_active[1] != characteristic_info['value']:
-                        logging.warning("Found new active for {}! '{}' vs '{}'".format(a_id, a_active[1], characteristic_info['value']))
+                        logging.warning("Found new active for {}! '{}' vs '{}'".format(a_id, a_active[1],
+                                                                                       characteristic_info['value']))
                     else:
-                        a_active = (characteristic_info['iid'], characteristic_info['value'], characteristic_info['format'])
+                        a_active = (characteristic_info['iid'], characteristic_info['value'],
+                                    characteristic_info['format'])
 
         if a_name is None:
             a_name = a_manufacturer
@@ -152,28 +152,6 @@ class HomeBridgeController:
             logging.error('PUT characteristics response: {}'.format(put_response.status_code))
             return False
         return True
-
-    def select_accessory(self, input_name: str):
-        try:
-            for key in self._accessories:
-                if input_name in key.lower():
-                    self._selected_accessory_names.update({self._accessories[key]['aid']: {'name': key}})
-                    self._selected_accessories.append({'aid': self._accessories[key]['aid'],
-                                                       'iid': self._accessories[key]['iid'],
-                                                       'value': self._accessories[key]['value']})
-        except:
-            logging.error(Exception, exc_info=True)
-
-    def select_group(self, input_name: str):
-        try:
-            for key in self._accessories:
-                if self._accessories[key]['type'].lower().startswith(input_name[:len(input_name)-2]):
-                    self._selected_accessory_names.update({self._accessories[key]['aid']: {'name':key}})
-                    self._selected_accessories.append({'aid': self._accessories[key]['aid'],
-                                                       'iid': self._accessories[key]['iid'],
-                                                       'value': self._accessories[key]['value']})
-        except:
-            logging.error(Exception, exc_info=True)
 
     def print_accessories(self, enable_json: bool = False):
         if enable_json:

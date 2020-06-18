@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 setup(
     name = 'pyhomebridge',
     packages = ['homebridge'],
-    version = '0.0.1',
+    version = '0.0.2',
     license='MIT',
     description = 'Control a homebridge server',
     long_description=README,

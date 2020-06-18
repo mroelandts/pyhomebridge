@@ -14,7 +14,7 @@ twine check dist/*
 
 if [ "$1" == "--real" ]; then
     # upload to pypi
-    twine upload --repository-url https://pypi.org/legacy/ dist/* --verbose
+    twine upload dist/*.whl
 else
     # upload to test.pypi
     twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose

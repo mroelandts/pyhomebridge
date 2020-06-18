@@ -11,7 +11,7 @@ setup(
   url = 'https://github.com/MatthiasRoelandts/pyhomebridge',
   #download_url = 'https://github.com/MatthiasRoelandts/pyhomebridge/archive/v_01.tar.gz',
   keywords = ['HomeBridge', 'HomeKit'],
-  install_requires=['requests'],
+  install_requires=['requests', 'argsparse'],
   classifiers=[
     'Development Status :: 3 - Alpha',
     'Intended Audience :: Developers',

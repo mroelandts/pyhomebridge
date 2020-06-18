@@ -10,7 +10,7 @@ Thats starting HomeBridge with the -I flag.
 
 ## Installation
 ```bash
-# not yet
+pip install pyhomebridge
 ```
 
 ## Usage

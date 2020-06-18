@@ -40,8 +40,6 @@ Currently supported devices:
 [HomeScript by menahishayan](https://github.com/menahishayan/HomeScript)
 
 ## License
-----
-
-MIT
+[MIT](LICENSE)
 
 **Free Software, Hell Yeah!**

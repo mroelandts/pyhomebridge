@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 
+# HomeBridgeController can control homebridge accessories
+# Created by Matthias Roelandts, 2020
+# https://github.com/mroelandts/pyhomebridge
+# License: MIT
+
 import re
 import requests
 import json
 import logging
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 
 class HomeBridgeException(Exception):
@@ -24,7 +29,7 @@ class HomeBridgeException(Exception):
             return "A HomeBridgeException has been raised!"
 
 
-class UnknownAccessory(HomeBridgeException):
+class UnknownAccessoryError(HomeBridgeException):
     pass
 
 
@@ -54,7 +59,12 @@ class HomeBridgeController:
         created_logger.setLevel(logging_level)
 
         # load accessories
-        self._get_accessories()
+        if self._get_accessories() is False:
+            raise HomeBridgeException("Failed to initialise HomeBridgeController!")
+
+    @property
+    def accessories(self) -> List[str]:
+        return list(self._accessories.keys())
 
     def _get_accessories(self) -> bool:
         logging.debug('GETTING accessories of {}'.format(self._base_url))
@@ -91,13 +101,15 @@ class HomeBridgeController:
                 if characteristic_info['description'] == 'Manufacturer':
                     if a_manufacturer is not None and a_manufacturer != characteristic_info['value']:
                         logging.warning("Found new manufacturer for {}! '{}' vs '{}'".format(a_id, a_manufacturer,
-                                                                                             characteristic_info['value']))
+                                                                                             characteristic_info[
+                                                                                                 'value']))
                     else:
                         a_manufacturer = characteristic_info['value']
                 if characteristic_info['description'] == 'On':
                     if a_value is not None and a_value[1] != characteristic_info['value']:
                         logging.warning("Found new value(On) for {}! '{}' vs '{}'".format(a_id, a_value[1],
-                                                                                          characteristic_info['value']))
+                                                                                          characteristic_info[
+                                                                                              'value']))
                     else:
 
                         a_value = (characteristic_info['iid'], characteristic_info['value'],
@@ -125,26 +137,41 @@ class HomeBridgeController:
             a_value = a_value[1]
         return a_name, {'aid': a_id, 'iid': a_iid, 'type': a_type, 'value': a_value}
 
-    def accessory_exists(self, accessory_name: str) -> bool:
+    def accessory_exists(self, accessory_name: str, refresh: bool = False) -> bool:
+        # refresh accessories
+        if refresh:
+            if self._get_accessories() is False:
+                raise HomeBridgeException("Failed to refresh accessories!")
+
+        # get accessry
         if self._accessories.get(accessory_name, None) is None:
             logging.warning("Name '{}' does not exists in homebridge.".format(accessory_name))
             return False
         else:
             return True
 
-    def get_value(self, accessory_name: str):
+    def get_value(self, accessory_name: str, refresh: bool = False):
         logging.debug('GET {}'.format(accessory_name))
+        # refresh accessories
+        if refresh:
+            if self._get_accessories() is False:
+                raise HomeBridgeException("Failed to refresh accessories!")
+
+        # get value
         accessory_info = self._accessories.get(accessory_name, None)
         if accessory_info is None:
-            raise UnknownAccessory("{} has not been found".format(accessory_name))
+            raise UnknownAccessoryError("{} has not been found".format(accessory_name))
         return accessory_info.get('value', None)
 
     def set_value(self, accessory_name: str, value: bool) -> bool:
         logging.debug('SET {} to {}'.format(accessory_name, value))
+
+        # get accessory
         accessory_info = self._accessories.get(accessory_name, None)
         if accessory_info is None:
-            raise UnknownAccessory("{} has not been found".format(accessory_name))
+            raise UnknownAccessoryError("{} has not been found".format(accessory_name))
 
+        # setting value
         put_response = requests.put('{}/characteristics'.format(self._base_url), headers=self._headers,
                                     data=json.dumps({"characteristics": [{'aid': accessory_info['aid'],
                                                                           'iid': accessory_info['iid'],

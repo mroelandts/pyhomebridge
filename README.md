@@ -20,7 +20,9 @@ Python usage:
 from homebridge import HomeBridgeController
 
 controller = HomeBridgeController(host="homebridge.local", port=80, auth="123-45-678")
+print(controller.accessories)
 controller.print_accessories()
+controller.accessory_exists("light_hallway")
 controller.get_value("light_hallway")
 controller.set_value("light_hallway", True)
 ```
@@ -40,6 +42,7 @@ Currently supported devices:
 
 * Lights
 * Switches
+* Outlets
 
 ## TODO
 

@@ -4,7 +4,7 @@ import sys
 import logging
 import argparse
 
-from homebridge import HomeBridgeController, UnknownAccessory, InvalidAuthorization
+from homebridge import HomeBridgeController
 
 DEFAULT_SERVER = 'homebridge.local'  # IP addr
 DEFAULT_PORT = 51264

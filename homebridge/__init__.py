@@ -89,7 +89,10 @@ class HomeBridgeController:
         a_iid = None
         a_type = None
         a_value = None
+        a_format = None
+        a_value_format = None
         a_active = None
+        a_active_format = None
         for service_info in accessory_dict['services']:
             for characteristic_info in service_info['characteristics']:
                 if characteristic_info['description'] == 'Name':
@@ -134,8 +137,9 @@ class HomeBridgeController:
             a_value = a_active
         if a_value is not None:
             a_iid = a_value[0]
+            a_format = a_value[2]
             a_value = a_value[1]
-        return a_name, {'aid': a_id, 'iid': a_iid, 'type': a_type, 'value': a_value}
+        return a_name, {'aid': a_id, 'iid': a_iid, 'type': a_type, 'value': a_value, 'format': a_format}
 
     def accessory_exists(self, accessory_name: str, refresh: bool = False) -> bool:
         # refresh accessories
@@ -172,10 +176,13 @@ class HomeBridgeController:
             raise UnknownAccessoryError("{} has not been found".format(accessory_name))
 
         # setting value
+        new_value = value
+        if 'int' in accessory_info['format']:
+            new_value = int(value == 'true')
         put_response = requests.put('{}/characteristics'.format(self._base_url), headers=self._headers,
                                     data=json.dumps({"characteristics": [{'aid': accessory_info['aid'],
                                                                           'iid': accessory_info['iid'],
-                                                                          'value': value, "status": 0}]}))
+                                                                          'value': new_value, "status": 0}]}))
         if put_response.status_code != 204:
             logging.error('PUT characteristics response: {}'.format(put_response.status_code))
             return False
@@ -191,3 +198,4 @@ class HomeBridgeController:
             print('  Name: {}'.format(key))
             print('  Type: {}'.format(accessory['type']))
             print('  Value: {}'.format(accessory['value']))
+            # print('  Format: {}'.format(accessory['format']))

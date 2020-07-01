@@ -2,6 +2,11 @@
 
 set -e
 
+# remove old build stuff
+rm -rf build
+rm -rf dist
+rm -rf pyhomebridge.egg-info
+
 # create venv-build
 virtualenv -p python3 venv-build
 source venv-build/bin/activate
